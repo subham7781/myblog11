@@ -1,15 +1,12 @@
 package com.myblog.myblog11;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 public class A {
 
     public static void main(String[] args) {
-        new A().test().example();
-    }
-    public A test(){
-        return new A();
-    }
-    public void example(){
-        System.out.println("hello");
+        PasswordEncoder passwordEncoder= new BCryptPasswordEncoder();
+        System.out.println(passwordEncoder.encode("testing"));
     }
 }
-
