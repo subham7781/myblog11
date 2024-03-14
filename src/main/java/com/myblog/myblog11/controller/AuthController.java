@@ -2,10 +2,12 @@ package com.myblog.myblog11.controller;
 
 import com.myblog.myblog11.entity.Role;
 import com.myblog.myblog11.entity.User;
+import com.myblog.myblog11.payload.JWTAuthResponse;
 import com.myblog.myblog11.payload.LoginDto;
 import com.myblog.myblog11.payload.SignUpDto;
 import com.myblog.myblog11.repository.RoleRepository;
 import com.myblog.myblog11.repository.UserRepository;
+import com.myblog.myblog11.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,17 +38,22 @@ public class AuthController {
 
     @Autowired
     private RoleRepository roleRepository;
+    @Autowired
+    private JwtTokenProvider tokenProvider;
 
     @PostMapping("/signin")
-    public ResponseEntity<String> authenticateUser(@RequestBody LoginDto loginDto){
-        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(loginDto.getUsernameOrEmail(), loginDto.getPassword());
-        Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
+    public ResponseEntity<JWTAuthResponse> authenticateUser(@RequestBody LoginDto loginDto){
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getUsernameOrEmail(), loginDto.getPassword()));
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        return new ResponseEntity<>("User signed-in successfully!.", HttpStatus.OK);
+
+        // get token form tokenProvider
+        String token = tokenProvider.generateToken(authentication);
+
+        return ResponseEntity.ok(new JWTAuthResponse(token));
     }
 
-
-        @PostMapping("/signup")
+    @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@RequestBody SignUpDto signUpDto) {
         if (userRepository.existsByUsername(signUpDto.getUsername())) {
             return new ResponseEntity<>("Username is already taken!", HttpStatus.BAD_REQUEST);
